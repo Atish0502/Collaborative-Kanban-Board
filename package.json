@@ -1,0 +1,24 @@
+{
+  "name": "collaborative-kanban",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Real-time collaborative Kanban board with React, TypeScript, Express, SQLite, and SSE",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c cyan,green \"npm --workspace=server run dev\" \"npm --workspace=client run dev\"",
+    "dev:server": "npm --workspace=server run dev",
+    "dev:client": "npm --workspace=client run dev",
+    "build": "npm --workspace=server run build && npm --workspace=client run build",
+    "start": "npm --workspace=server run start",
+    "typecheck": "npm --workspace=server run typecheck && npm --workspace=client run typecheck",
+    "test": "npm --workspace=server run test && npm --workspace=client run test",
+    "test:e2e": "node scripts/e2e-verify.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "playwright-core": "^1.65.1"
+  }
+}
