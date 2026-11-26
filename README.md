@@ -109,4 +109,6 @@ Each tab generates a UUID `clientId` and subscribes via native `EventSource`. Se
 
 ## 13. Coding Agents Used
 
-- **Antigravity** — Assisted with implementation, refactoring, automated test authoring, verification, and documentation.
+Antigravity — Used as a development assistant for selected coding tasks, troubleshooting, refactoring, and documentation.
+
+ChatGPT (GPT-6) — Used occasionally for clarifying assignment requirements, discussing technical approaches, resolving doubts, and reviewing documentation.
