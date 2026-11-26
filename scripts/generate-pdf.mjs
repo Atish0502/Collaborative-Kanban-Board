@@ -20,8 +20,8 @@ const html = `<!doctype html>
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
-    font-size: 10pt;
-    line-height: 1.55;
+    font-size: 9.8pt;
+    line-height: 1.52;
     color: #0f172a;
     background: #ffffff;
   }
@@ -53,7 +53,7 @@ const html = `<!doctype html>
   }
   .cover-subtitle {
     margin: 0 0 22px;
-    font-size: 12pt;
+    font-size: 11.8pt;
     line-height: 1.5;
     color: #475569;
     max-width: 92%;
@@ -77,8 +77,8 @@ const html = `<!doctype html>
     padding: 12px 14px;
     background: #f8fafc;
   }
-  .metric-val { font-size: 14pt; font-weight: 800; color: #4f46e5; }
-  .metric-label { margin-top: 2px; font-size: 8.5pt; color: #475569; font-weight: 600; }
+  .metric-val { font-size: 13.5pt; font-weight: 800; color: #4f46e5; }
+  .metric-label { margin-top: 2px; font-size: 8.4pt; color: #475569; font-weight: 600; }
   .cover-meta {
     border: 1px solid #e2e8f0;
     border-radius: 8px;
@@ -87,15 +87,15 @@ const html = `<!doctype html>
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px 20px;
-    font-size: 9.2pt;
+    font-size: 9pt;
   }
-  .meta-key { font-size: 8pt; text-transform: uppercase; color: #64748b; font-weight: 700; }
-  .meta-val { color: #0f172a; font-weight: 600; }
+  .meta-key { font-size: 7.8pt; text-transform: uppercase; color: #64748b; font-weight: 700; }
+  .meta-val { color: #0f172a; font-weight: 600; word-break: break-word; }
   h2 {
-    margin: 20px 0 8px;
+    margin: 18px 0 8px;
     padding-bottom: 5px;
     border-bottom: 2px solid #e2e8f0;
-    font-size: 13.5pt;
+    font-size: 13pt;
     font-weight: 800;
     break-after: avoid;
     page-break-after: avoid;
@@ -106,7 +106,7 @@ const html = `<!doctype html>
     border-radius: 5px;
     background: #eef2ff;
     color: #4338ca;
-    font-size: 9pt;
+    font-size: 8.8pt;
     margin-right: 6px;
   }
   p { margin: 0 0 8px; color: #334155; }
@@ -114,7 +114,7 @@ const html = `<!doctype html>
   li { margin-bottom: 4px; }
   code {
     font-family: Consolas, 'Courier New', monospace;
-    font-size: 8.6pt;
+    font-size: 8.4pt;
     background: #f1f5f9;
     color: #0f172a;
     padding: 1px 4px;
@@ -128,7 +128,7 @@ const html = `<!doctype html>
     background: #0f172a;
     color: #e2e8f0;
     font-family: Consolas, 'Courier New', monospace;
-    font-size: 8.2pt;
+    font-size: 8pt;
     line-height: 1.45;
     white-space: pre-wrap;
     word-break: break-word;
@@ -140,7 +140,7 @@ const html = `<!doctype html>
     width: 100%;
     border-collapse: collapse;
     margin: 8px 0 14px;
-    font-size: 8.9pt;
+    font-size: 8.7pt;
     break-inside: avoid;
   }
   th, td {
@@ -161,7 +161,7 @@ const html = `<!doctype html>
   }
   .diagram-caption {
     margin-top: 5px;
-    font-size: 8.5pt;
+    font-size: 8.4pt;
     color: #64748b;
     text-align: center;
     font-weight: 600;
@@ -173,10 +173,10 @@ const html = `<!doctype html>
     background: #dcfce7;
     color: #166534;
     font-weight: 700;
-    font-size: 8pt;
+    font-size: 7.8pt;
   }
   .checklist { list-style: none; padding-left: 0; columns: 2; column-gap: 16px; }
-  .checklist li { break-inside: avoid; margin-bottom: 5px; font-size: 9pt; }
+  .checklist li { break-inside: avoid; margin-bottom: 5px; font-size: 8.8pt; }
   .chk {
     display: inline-block;
     width: 13px;
@@ -213,8 +213,8 @@ const html = `<!doctype html>
           <div class="metric-label">Server, Client &amp; E2E Tests Passing</div>
         </div>
         <div class="metric-box">
-          <div class="metric-val">SSE + 409</div>
-          <div class="metric-label">Live Sync &amp; Stale-Edit Checks</div>
+          <div class="metric-val">Live on Render</div>
+          <div class="metric-label">Verified HTTP 200 API &amp; Client</div>
         </div>
       </div>
 
@@ -257,40 +257,40 @@ const html = `<!doctype html>
     <div class="cover-meta">
       <div>
         <div class="meta-key">Application</div>
-        <div class="meta-val">FlowBoard Collaborative Kanban</div>
+        <div class="meta-val">FlowBoard Collaborative Kanban (hoichoi/)</div>
       </div>
       <div>
         <div class="meta-key">Report Date</div>
-        <div class="meta-val">November 25, 2026</div>
+        <div class="meta-val">November 26, 2026</div>
       </div>
       <div>
-        <div class="meta-key">Frontend</div>
+        <div class="meta-key">GitHub Repository</div>
+        <div class="meta-val">github.com/Atish0502/Collaborative-Kanban-Board</div>
+      </div>
+      <div>
+        <div class="meta-key">Live Deployment</div>
+        <div class="meta-val">collaborative-kanban-board-pwxi.onrender.com</div>
+      </div>
+      <div>
+        <div class="meta-key">Frontend Stack</div>
         <div class="meta-val">React 19, TypeScript, Vite, @dnd-kit</div>
       </div>
       <div>
         <div class="meta-key">Backend &amp; DB</div>
         <div class="meta-val">Node.js, Express, better-sqlite3, SSE</div>
       </div>
-      <div>
-        <div class="meta-key">Tests Run</div>
-        <div class="meta-val">Vitest (Server + Client), Build, 2-Browser Playwright E2E</div>
-      </div>
-      <div>
-        <div class="meta-key">Deployment Status</div>
-        <div class="meta-val">Build &amp; static serving ready; undeployed locally</div>
-      </div>
     </div>
   </section>
 
   <h2><span class="sec-num">01</span> Project Overview</h2>
   <p>
-    FlowBoard is a collaborative Kanban board where multiple users can view, create, edit, delete, filter, and drag tasks
-    across four fixed columns (<code>Backlog</code>, <code>Todo</code>, <code>In Progress</code>, <code>Done</code>) with
-    automatic real-time updates in other open browsers.
+    FlowBoard is a collaborative Kanban board where multiple browser sessions can view, create, edit, delete, filter,
+    and drag tasks across four ordered columns (<code>Backlog</code>, <code>Todo</code>, <code>In Progress</code>,
+    <code>Done</code>) with live Server-Sent Events (SSE) synchronization.
   </p>
   <p>
-    The code focuses on keeping column positions accurate in SQLite, updating the UI right away with scoped rollback on
-    error, protecting open edit forms against stale overwrites (HTTP <code>409</code>), and keeping URL filters in sync.
+    The design emphasizes consistent transactional ordering in SQLite, immediate optimistic updates with sequence-safe
+    rollback, stale-edit conflict protection (HTTP <code>409</code>), URL-persisted filtering, and light/dark theming.
   </p>
 
   <h2><span class="sec-num">02</span> Technology Stack</h2>
@@ -299,7 +299,7 @@ const html = `<!doctype html>
     <tbody>
       <tr><td>Frontend</td><td>React 19, TypeScript, Vite</td><td>Strong type safety across board state and SSE payloads, fast builds.</td></tr>
       <tr><td>Drag &amp; Drop</td><td><code>@dnd-kit/core</code>, <code>@dnd-kit/sortable</code></td><td>Pointer + keyboard sensors with a 6px threshold so clicks still open cards.</td></tr>
-      <tr><td>Backend</td><td>Node.js, Express, TypeScript</td><td>Simple REST routing, clean error middleware, and native SSE streaming.</td></tr>
+      <tr><td>Backend</td><td>Node.js, Express, TypeScript</td><td>Lightweight REST routing, error middleware, and native SSE streaming.</td></tr>
       <tr><td>Database</td><td>SQLite (<code>better-sqlite3</code>)</td><td>Persistent local storage with synchronous ACID transactions and WAL mode.</td></tr>
       <tr><td>Testing</td><td>Vitest, Supertest, Testing Library, Playwright Core</td><td>Covers SQLite persistence, API validation, UI rollback, and live 2-tab sync.</td></tr>
     </tbody>
@@ -308,7 +308,7 @@ const html = `<!doctype html>
   <h2><span class="sec-num">03</span> Architecture</h2>
   <ul>
     <li><strong>Backend (<code>server/src/</code>):</strong> <code>types.ts</code> defines task and SSE types; <code>db.ts</code> initializes SQLite and exposes <code>TaskStore</code>; <code>events.ts</code> manages SSE connections and heartbeats (<code>EventBus</code>); <code>routes.ts</code> validates payloads, handles failure injection, and maps endpoints; <code>index.ts</code> exports <code>createApp()</code> and starts the server.</li>
-    <li><strong>Frontend (<code>client/src/</code>):</strong> <code>services/api.ts</code> wraps <code>fetch</code>; <code>hooks/useKanbanBoard.ts</code> handles optimistic updates, rollback, and SSE sync; <code>hooks/useUrlFilters.ts</code> syncs URL query parameters; <code>components/</code> renders the UI.</li>
+    <li><strong>Frontend (<code>client/src/</code>):</strong> <code>services/api.ts</code> wraps <code>fetch</code>; <code>hooks/useKanbanBoard.ts</code> handles optimistic updates, rollback, and SSE sync; <code>hooks/useUrlFilters.ts</code> syncs URL query parameters; <code>pages/BoardPage.tsx</code> and <code>components/</code> render the UI.</li>
   </ul>
 
   <h2><span class="sec-num">04</span> Database</h2>
@@ -327,7 +327,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_status_position ON tasks (status, position)
   <p>
     Seven sample tasks are seeded once on first boot if <code>app_metadata</code> has no <code>seeded</code> key and
     <code>tasks</code> is empty. Column positions stay packed <code>0..N-1</code> inside SQLite transactions, and
-    <code>bumpTimestamp()</code> ensures <code>updatedAt</code> always advances even on rapid back-to-back updates.
+    <code>bumpTimestamp()</code> ensures <code>updatedAt</code> strictly advances even on sub-millisecond updates.
   </p>
 
   <h2><span class="sec-num">05</span> API Implementation</h2>
@@ -340,6 +340,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_status_position ON tasks (status, position)
       <tr><td><code>/api/tasks/reorder</code></td><td>POST</td><td>Atomically move task across/within columns</td><td><code>200</code>, <code>400</code>, <code>404</code>, <code>409</code>, <code>503</code></td></tr>
       <tr><td><code>/api/tasks/:id</code></td><td>DELETE</td><td>Delete task, repack column, emit <code>task.deleted</code></td><td><code>200</code>, <code>404</code>, <code>503</code></td></tr>
       <tr><td><code>/api/events</code></td><td>GET</td><td>Open SSE stream with 25s heartbeats</td><td><code>200</code></td></tr>
+      <tr><td><code>/api/health</code></td><td>GET</td><td>Return health status, SSE client count, failure flag</td><td><code>200</code></td></tr>
     </tbody>
   </table>
   <pre><code>// HTTP 409 Conflict response when expectedUpdatedAt is stale
@@ -353,10 +354,11 @@ CREATE INDEX IF NOT EXISTS idx_tasks_status_position ON tasks (status, position)
 
   <h2><span class="sec-num">06</span> Frontend Implementation</h2>
   <p>
-    <code>Header.tsx</code> renders the board header, live SSE status pill, browser client count, failure-simulation
-    toggle, search box, filters, and Add Task button. <code>KanbanColumn.tsx</code> and <code>TaskCard.tsx</code>
-    display the four ordered columns and cards with priority borders and badges. <code>CreateTaskModal.tsx</code> and
-    <code>TaskDetailModal.tsx</code> handle validation, isolated editing drafts, conflict banners, and delete confirmation.
+    <code>Header.tsx</code> renders the app title, live SSE status pill, browser client count, light/dark theme toggle,
+    failure-simulation toggle, search box, filters, and Add Task button. <code>KanbanColumn.tsx</code> and
+    <code>TaskCard.tsx</code> display the four ordered columns and cards with priority borders and badges.
+    <code>CreateTaskModal.tsx</code> and <code>TaskDetailModal.tsx</code> handle validation, isolated editing drafts,
+    conflict banners, and inline delete confirmation.
   </p>
 
   <h2><span class="sec-num">07</span> Drag-and-Drop</h2>
@@ -411,41 +413,50 @@ CREATE INDEX IF NOT EXISTS idx_tasks_status_position ON tasks (status, position)
     <div class="diagram-caption">Figure 2: Optimistic mutation lifecycle and scoped rollback</div>
   </div>
 
-  <h2><span class="sec-num">10</span> Real-Time Collaboration</h2>
+  <h2><span class="sec-num">10</span> Real-Time Collaboration &amp; Timestamp Assessment</h2>
   <p>
     Each tab creates a UUID <code>clientId</code> and listens to <code>/api/events</code>. Tabs skip events carrying
     their own <code>clientId</code>. Remote events touching a task locked in <code>pendingRef</code> wait in
-    <code>deferredRef</code> until the local call finishes, and updates check <code>updatedAt</code> before overwriting.
-    Open modals keep an isolated <code>draft</code> and check <code>expectedUpdatedAt</code> on save so stale writes
-    return <code>409</code> and offer <code>Load Latest Task</code>. After a disconnect, <code>onopen</code> refreshes
-    <code>/api/board</code> while keeping pending edits intact.
+    <code>deferredRef</code> until the local call finishes. Open modals keep an isolated <code>draft</code> and send
+    <code>expectedUpdatedAt</code> on save so stale writes return <code>409</code> and offer
+    <code>Load Latest Task</code>. After a disconnect, <code>onopen</code> re-fetches <code>/api/board</code> while
+    keeping pending edits intact.
+  </p>
+  <p>
+    Remote SSE application compares <code>incoming.updatedAt &gt;= current.updatedAt</code>. Because
+    <code>bumpTimestamp()</code> ensures strictly increasing ISO timestamps on a single server (and <code>&gt;=</code>
+    allows sibling position shifts with unchanged timestamps to apply), this is reliable for single-instance deployment,
+    though a monotonic integer <code>version</code> column would be stronger if scaled across multiple servers. Also,
+    <code>moveTask</code> omits <code>expectedUpdatedAt</code>, so concurrent drags resolve as last-write-wins.
   </p>
 
-  <h2><span class="sec-num">11</span> Testing</h2>
+  <h2><span class="sec-num">11</span> Testing &amp; Deployment Verification</h2>
   <table>
-    <thead><tr><th>Command</th><th>Coverage</th><th>Result</th></tr></thead>
+    <thead><tr><th>Command / Target</th><th>Coverage</th><th>Result</th></tr></thead>
     <tbody>
       <tr><td><code>npm run typecheck</code></td><td>TypeScript compilation for <code>server</code> and <code>client</code></td><td><span class="badge-pass">PASSED</span></td></tr>
       <tr><td><code>npm --workspace=server run test</code></td><td>6 tests: seed-once, CRUD/validation, 409 conflict, reorder, live SSE, 503 failure injection</td><td><span class="badge-pass">PASSED (6/6)</span></td></tr>
-      <tr><td><code>npm --workspace=client run test</code></td><td>8 tests: URL sync, combined filters, reorder math, rollback, 409 modal, SSE events</td><td><span class="badge-pass">PASSED (8/8)</span></td></tr>
+      <tr><td><code>npm --workspace=client run test</code></td><td>8 tests: URL sync, combined filters, theme toggle, reorder math, rollback, 409 modal, SSE</td><td><span class="badge-pass">PASSED (8/8)</span></td></tr>
       <tr><td><code>npm run build</code></td><td>Server <code>tsc</code> and Client Vite production bundle</td><td><span class="badge-pass">PASSED</span></td></tr>
       <tr><td><code>npm run test:e2e</code></td><td>9 multi-browser Edge E2E scenarios (live SSE sync, 409 conflict, drag-and-drop, refresh, rollback, reconnect)</td><td><span class="badge-pass">PASSED (9/9)</span></td></tr>
+      <tr><td>Live Render URL</td><td><code>https://collaborative-kanban-board-pwxi.onrender.com/</code> (<code>/api/health</code>, <code>/api/board</code>, <code>/</code>)</td><td><span class="badge-pass">VERIFIED (200)</span></td></tr>
     </tbody>
   </table>
 
-  <h2><span class="sec-num">12</span> Running the Application</h2>
-  <pre><code>npm install
+  <h2><span class="sec-num">12</span> Running &amp; Deploying the Application</h2>
+  <pre><code># Local development
+npm install
 npm run dev
 
-# Production single-server mode (PowerShell):
+# Production build &amp; single-server start (Render: Build="npm install --include=dev &amp;&amp; npm run build", Start="npm run start")
 npm run build
 $env:SERVE_CLIENT="true"; $env:NODE_ENV="production"; npm run start</code></pre>
 
   <h2><span class="sec-num">13</span> Limitations and Future Improvements</h2>
   <ul>
-    <li><strong>Deployment status:</strong> Production build and static serving are verified locally; not deployed externally. Reverse proxies must disable buffering on <code>/api/events</code>.</li>
-    <li><strong>Single-node SSE:</strong> In-memory <code>EventBus</code> targets one Node process; multi-node scaling would need Redis Pub/Sub and a shared database instead of SQLite.</li>
-    <li><strong>Authentication:</strong> No login system; the client counter shows open SSE browser connections.</li>
+    <li><strong>Single-node SSE &amp; SQLite:</strong> In-memory <code>EventBus</code> targets one Node process; multi-node scaling would require Redis Pub/Sub and PostgreSQL.</li>
+    <li><strong>Free-tier Ephemeral Disk:</strong> Without a persistent disk mount for <code>DB_PATH</code>, SQLite resets on sleep/redeploy and re-seeds the 7 initial tasks.</li>
+    <li><strong>Drag-and-Drop &amp; Auth:</strong> <code>moveTask</code> does not send <code>expectedUpdatedAt</code>; there is no user login, so client counts track open SSE tabs.</li>
   </ul>
 
   <h2><span class="sec-num">14</span> Final Completion Checklist</h2>
@@ -461,8 +472,10 @@ $env:SERVE_CLIENT="true"; $env:NODE_ENV="production"; npm run start</code></pre>
     <li><span class="chk">&#10003;</span>Optimistic updates &amp; rollback</li>
     <li><span class="chk">&#10003;</span>SSE live sync &amp; reconnect</li>
     <li><span class="chk">&#10003;</span>HTTP 409 concurrency check</li>
+    <li><span class="chk">&#10003;</span>Light/dark theme toggle</li>
     <li><span class="chk">&#10003;</span>README.md &amp; .env.example</li>
     <li><span class="chk">&#10003;</span>Unit, API &amp; E2E tests passed</li>
+    <li><span class="chk">&#10003;</span>Live Render URL verified</li>
     <li><span class="chk">&#10003;</span>IMPLEMENTATION_REPORT.pdf</li>
   </ul>
 
@@ -479,7 +492,7 @@ async function main() {
       format: 'A4',
       printBackground: true,
       displayHeaderFooter: true,
-      headerTemplate: `<div style="width:100%;font-size:8px;color:#64748b;padding:0 16mm;display:flex;justify-content:space-between;font-family:Segoe UI,sans-serif;"><span>FlowBoard — Implementation Report</span><span>November 25, 2026</span></div>`,
+      headerTemplate: `<div style="width:100%;font-size:8px;color:#64748b;padding:0 16mm;display:flex;justify-content:space-between;font-family:Segoe UI,sans-serif;"><span>FlowBoard — Implementation Report</span><span>November 26, 2026</span></div>`,
       footerTemplate: `<div style="width:100%;font-size:8px;color:#64748b;padding:0 16mm;display:flex;justify-content:space-between;font-family:Segoe UI,sans-serif;"><span>Collaborative Kanban Board</span><span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>`,
       margin: { top: '20mm', right: '16mm', bottom: '20mm', left: '16mm' },
     });
@@ -487,7 +500,8 @@ async function main() {
     await browser.close();
   }
   const stat = fs.statSync(OUTPUT_PDF);
-  console.log(`Generated ${OUTPUT_PDF} (${stat.size} bytes)`);
+  const header = fs.readFileSync(OUTPUT_PDF).subarray(0, 8).toString('utf8');
+  console.log(`Generated ${OUTPUT_PDF} (${stat.size} bytes, header=${JSON.stringify(header)})`);
 }
 
 main().catch((err) => {

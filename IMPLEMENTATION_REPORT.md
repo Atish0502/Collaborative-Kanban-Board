@@ -1,41 +1,43 @@
 # Collaborative Kanban Board — Implementation Report
 
 **Project:** FlowBoard Collaborative Kanban Board  
-**Date:** November 25, 2026  
+**Repository:** https://github.com/Atish0502/Collaborative-Kanban-Board.git  
+**Live Deployment:** https://collaborative-kanban-board-pwxi.onrender.com/  
+**Date:** November 26, 2026  
 **Stack:** React, TypeScript, Vite, `@dnd-kit`, Node.js, Express, SQLite (`better-sqlite3`), Server-Sent Events (SSE)
 
 ---
 
 ## Section 1 — Project Overview
 
-This project is a multi-user Kanban board where people can view, create, edit, delete, filter, and drag tasks across four columns (`Backlog`, `Todo`, `In Progress`, `Done`) while updates appear automatically in other open browsers without refreshing.
+FlowBoard is a multi-user Kanban board where multiple browser tabs can simultaneously view, create, edit, delete, filter, and drag tasks across four ordered columns (`Backlog`, `Todo`, `In Progress`, `Done`) while changes appear automatically in other browsers without refreshing.
 
-The main technical work went into keeping task positions consistent in SQLite, applying optimistic updates in React without losing track of concurrent edits, rolling back failed requests safely, and syncing state across tabs over Server-Sent Events.
+The implementation focuses on keeping column positions consistent inside SQLite transactions, applying optimistic UI updates with sequence-safe rollback, protecting open edit forms against stale overwrites (HTTP `409`), persisting search/filter state in URL query parameters, and synchronizing state via Server-Sent Events.
 
 ---
 
 ## Section 2 — Technology Stack
 
-- **React 19, TypeScript, Vite**: Keeps UI components and API payloads strongly typed while building a small client bundle (`client/dist`).
-- **@dnd-kit/core & @dnd-kit/sortable**: Handles pointer and keyboard drag-and-drop cleanly, including a 6px drag activation distance so normal clicks open task details without triggering a drag.
-- **Node.js & Express**: Serves the REST endpoints, streams SSE responses on `GET /api/events`, and serves the built frontend when `SERVE_CLIENT=true`.
-- **SQLite (`better-sqlite3`)**: Stores tasks on disk with synchronous ACID transactions and WAL mode, avoiding extra database setup.
-- **Vitest, Supertest, Testing Library, Playwright Core**: Covers backend routes, SQLite ordering, UI filtering/rollback, and live two-browser SSE sync.
+- **React 19, TypeScript, Vite**: Strongly typed UI components, hooks, and API payloads; builds a compact production bundle (`client/dist/`).
+- **@dnd-kit/core & @dnd-kit/sortable**: Pointer and keyboard drag-and-drop with a 6px pointer activation constraint so clicks open task details cleanly.
+- **Node.js & Express**: REST API routing, centralized error middleware, failure-injection testing hooks, native SSE streaming (`GET /api/events`), and static frontend serving when `SERVE_CLIENT=true`.
+- **SQLite (`better-sqlite3`)**: Persistent local storage with synchronous ACID transactions and WAL mode.
+- **Vitest, Supertest, Testing Library, Playwright Core**: Covers SQLite persistence, API validation, UI filtering/rollback/theme toggle, and live two-browser SSE sync.
 
 ---
 
 ## Section 3 — Architecture
 
-The codebase is split into two npm workspaces (`server` and `client`) plus helper scripts in `scripts/`:
+The project is an npm workspace monorepo (`hoichoi/`) split into `client/`, `server/`, and `scripts/`:
 
-- **Backend (`server/src/`)**: `types.ts` defines shared models and SSE payloads, `db.ts` initializes SQLite and wraps all reads/writes in `TaskStore` transactions, `events.ts` manages SSE subscribers and heartbeats (`EventBus`), `routes.ts` handles validation, failure injection, and API endpoints, and `index.ts` wires up Express (`createApp`).
-- **Frontend (`client/src/`)**: `services/api.ts` wraps `fetch` and parses typed HTTP errors, `hooks/useKanbanBoard.ts` holds board state, optimistic snapshots, and SSE handling, `hooks/useUrlFilters.ts` syncs query params with browser history, and `components/` renders the board, cards, modals, and toasts.
+- **Backend (`server/src/`)**: `types.ts` defines shared task and SSE event types; `db.ts` initializes SQLite and wraps reads/writes in `TaskStore` transactions; `events.ts` (`EventBus`) manages SSE subscribers and 25s heartbeats; `routes.ts` handles validation, failure simulation, and endpoint handlers; `index.ts` exports `createApp()` and runs the HTTP server.
+- **Frontend (`client/src/`)**: `services/api.ts` wraps `fetch` and parses typed `ApiError` responses; `hooks/useKanbanBoard.ts` manages board state, optimistic snapshots, rollback, and SSE reconciliation; `hooks/useUrlFilters.ts` syncs filters with browser history; `pages/BoardPage.tsx` and `components/` render the board, cards, modals, theme toggle, and toasts.
 
 ---
 
 ## Section 4 — Database
 
-`openDatabase()` in `server/src/db.ts` creates `tasks` and `app_metadata` on startup:
+`openDatabase()` in `server/src/db.ts` enables WAL mode (`journal_mode = WAL`) on disk databases and creates `tasks` and `app_metadata`:
 
 ```sql
 CREATE TABLE IF NOT EXISTS tasks (
@@ -50,11 +52,16 @@ CREATE TABLE IF NOT EXISTS tasks (
 );
 
 CREATE INDEX IF NOT EXISTS idx_tasks_status_position ON tasks (status, position);
+
+CREATE TABLE IF NOT EXISTS app_metadata (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
 ```
 
-Seven sample tasks are seeded once inside a transaction if `app_metadata` does not yet contain `seeded` and `tasks` is empty. Subsequent restarts never add duplicates, even if all tasks are deleted.
+Seven sample tasks are seeded once inside a transaction if `app_metadata` lacks `seeded` and `tasks` is empty. Subsequent restarts never add duplicates, even if all tasks are deleted.
 
-Task queries always order by column (`Backlog`, `Todo`, `In Progress`, `Done`), then `position ASC`, then `updated_at ASC`. Moves, reorders, and deletes compact positions to `0..N-1` inside a single SQLite transaction, and `bumpTimestamp()` guarantees `updatedAt` moves forward even on sub-millisecond updates.
+Queries in `TaskStore.getBoard()` order by column (`Backlog`, `Todo`, `In Progress`, `Done`), then `position ASC`, then `updated_at ASC`. Moves, reorders, and deletes compact positions to `0..N-1` inside a single SQLite transaction, and `bumpTimestamp()` guarantees `updatedAt` strictly advances even on sub-millisecond updates.
 
 ---
 
@@ -62,13 +69,13 @@ Task queries always order by column (`Backlog`, `Todo`, `In Progress`, `Done`), 
 
 | Endpoint | Method | Behavior | Status Codes |
 | :--- | :--- | :--- | :--- |
-| `/api/health` | GET | Server status, active SSE client count, failure flag | `200` |
+| `/api/health` | GET | Server status, active SSE client count, failure-injection flag | `200` |
 | `/api/board` | GET | Returns `{ tasks }` ordered by column and position | `200` |
 | `/api/tasks` | POST | Validates fields, inserts task, emits `task.created` | `201`, `400`, `503` |
 | `/api/tasks/:id` | PATCH | Partial update with `expectedUpdatedAt` check, emits `task.updated` | `200`, `400`, `404`, `409`, `503` |
 | `/api/tasks/reorder` | POST | Moves task within/between columns atomically, emits `task.updated` | `200`, `400`, `404`, `409`, `503` |
 | `/api/tasks/:id` | DELETE | Removes task, compacts column, emits `task.deleted` | `200`, `404`, `503` |
-| `/api/events` | GET | SSE stream with 25s heartbeats and disconnect cleanup | `200` |
+| `/api/events` | GET | SSE stream with `connected`, `clients.count`, `task.*`, and 25s heartbeats | `200` |
 
 Example `409 Conflict` response when `expectedUpdatedAt` is stale:
 
@@ -92,55 +99,58 @@ Example `409 Conflict` response when `expectedUpdatedAt` is stale:
 
 ## Section 6 — Frontend Implementation
 
-- **Header (`Header.tsx`)**: Displays app logo, board name, SSE status pill (`Live` / `Connecting` / `Reconnecting`), connected client count (explicitly labeled as active browser connections), QA `Simulate Failure` toggle, title search bar, Priority and Assignee dropdowns, `Clear filters` button, and `Add Task`.
-- **Columns & Cards (`KanbanColumn.tsx`, `TaskCard.tsx`)**: Renders the four columns in order with task counts, quick-add buttons, empty states, priority badges, subtle left priority borders, description previews, and assignee avatars.
-- **Modals & Toasts (`CreateTaskModal.tsx`, `TaskDetailModal.tsx`, `ToastContainer.tsx`)**: Validates required titles, keeps edit drafts isolated from live board updates, confirms deletes inline, and displays success/error/warning notifications with retry actions when initial loading fails.
+- **Header (`Header.tsx`)**: Brand logo, board title, SSE status pill (`Live` / `Connecting` / `Reconnecting`), connected client count (explicitly labeled as browser connections), light/dark theme toggle, QA `Simulate Failure` toggle, title search input, Priority and Assignee dropdowns, `Clear filters` button, and `Add Task`.
+- **Columns & Cards (`KanbanColumn.tsx`, `TaskCard.tsx`)**: Four ordered columns with task counts, quick-add buttons, empty states, priority badges, priority left border accents, description previews, and assignee avatars.
+- **Modals & Toasts (`CreateTaskModal.tsx`, `TaskDetailModal.tsx`, `ToastContainer.tsx`)**: Required-title validation, isolated edit drafts, remote-change notices, HTTP `409` recovery (`Load Latest Task`), inline delete confirmation, and non-blocking toast notifications with retry on initial load failure.
+- **Theme Support (`BoardPage.tsx`, `index.css`)**: CSS variable overrides under `[data-theme='dark']` persisted in `localStorage`.
 
 ---
 
 ## Section 7 — Drag-and-Drop
 
-`BoardPage.tsx` uses `DndContext` with `PointerSensor` (`distance: 6`) and `KeyboardSensor`. `detectTarget()` checks `pointerWithin` first—preferring task cards over the parent column box when hovering a card—and falls back to `rectIntersection` and `closestCorners` so empty columns also accept drops reliably.
+`BoardPage.tsx` uses `DndContext` with `PointerSensor` (`distance: 6`) and `KeyboardSensor`. `detectTarget()` checks `pointerWithin` first (preferring individual task cards over the parent column box) and falls back to `rectIntersection` and `closestCorners` so empty columns accept drops reliably.
 
-`calculateReorderPlan()` computes target indices against the full `tasks` list (preserving hidden items when filters are active), applies the optimistic layout right away, and posts `{ taskId, targetStatus, targetPosition }` to `/api/tasks/reorder`.
+`calculateReorderPlan()` computes target indices against the full `tasks` list (preserving hidden tasks when filters are active), applies the optimistic layout immediately, and posts `{ taskId, targetStatus, targetPosition }` to `POST /api/tasks/reorder`.
 
 ---
 
 ## Section 8 — Search, Filters, and URL State
 
-`filterTasks()` filters client-side by title substring (`q`), `priority`, and `assignee` at the same time without touching SQLite. `useUrlFilters()` reads `window.location.search` on load, ignores invalid priority values, updates the URL with `pushState` (or `replaceState` for quick consecutive typing so browser history stays tidy), and listens to `popstate` for Back/Forward navigation.
+`filterTasks()` filters client-side by title substring (`q`), `priority`, and `assignee` simultaneously without mutating SQLite. `useUrlFilters()` reads `window.location.search` on mount, ignores invalid `priority` values, updates the URL with `pushState` (or `replaceState` within 600ms while typing so browser history stays clean), and listens to `popstate` for Back/Forward navigation.
 
 ---
 
 ## Section 9 — Optimistic Updates
 
-1. Before calling the API, `startOp()` assigns a `mutationId` and sequence number (`seq`) and snapshots only the tasks touched by that operation into `pendingRef`.
-2. React state updates right away so cards appear, change, move, or disappear immediately.
-3. On HTTP `2xx`, the pending entry is cleared, `settledSeqRef` records `op.seq`, and canonical server data replaces temporary placeholders.
-4. On any error, `rollbackOp()` restores the snapshotted tasks only if no newer pending operation touches them and `settledSeqRef` has not moved past `op.seq`. That prevents an older failed request from overwriting newer work. Any queued remote SSE events are drained immediately afterward.
+1. Before sending a mutation, `startOp()` assigns a `mutationId` and monotonic sequence (`seq`) and snapshots only the affected task IDs into `pendingRef`.
+2. React state updates immediately so cards appear, update, move, or disappear without waiting for the network.
+3. On HTTP `2xx`, the pending entry is deleted, `settledSeqRef` records `op.seq`, and canonical server data replaces temporary placeholders (`temp-*` IDs).
+4. On any error, `rollbackOp()` restores snapshotted tasks only if no newer pending operation touches them (`!isLocked(taskId)`) and `(settledSeqRef.get(taskId) ?? 0) <= op.seq`. This prevents a delayed older failure from overwriting newer successful edits. Deferred SSE events are drained immediately afterward.
 
 ---
 
-## Section 10 — Real-Time Collaboration
+## Section 10 — Real-Time Collaboration & Timestamp Assessment
 
-- **SSE (`EventBus`)**: Sets `text/event-stream`, `no-cache, no-transform`, `X-Accel-Buffering: no`, `retry: 2000`, and sends `:heartbeat` comments every 25 seconds. Disconnected sockets are removed on `req.on('close')`.
-- **Client & Mutation IDs**: Each tab generates a `clientId` and ignores SSE events echoing its own `clientId`.
-- **Deferred Remote Events**: If an incoming SSE event touches a task currently locked in `pendingRef`, it waits in `deferredRef` until the local mutation settles.
-- **Timestamp Guard**: Remote updates only apply when `incoming.updatedAt >= current.updatedAt`.
-- **Modal Concurrency**: `TaskDetailModal` captures `baseUpdatedAt` when opened and keeps form edits in local `draft` state. If a remote edit arrives while the modal is open, a banner warns the user without overwriting their typing. Saving sends `expectedUpdatedAt`; HTTP `409` displays the latest server version with a `Load Latest Task` button.
-- **Reconnection**: When `EventSource` reconnects after dropping, `onopen` fetches `/api/board` once to pull any missed updates while keeping pending local edits intact.
+- **SSE (`EventBus`)**: Sends `text/event-stream`, `no-cache, no-transform`, `X-Accel-Buffering: no`, `retry: 2000`, and `:heartbeat` comments every 25s; cleans up closed sockets on `req.on('close')`.
+- **Self-Echo Suppression & Locking**: Each tab generates a UUID `clientId` and skips events matching its own `clientId`. Remote events touching any task in `pendingRef` wait in `deferredRef` until the local mutation settles.
+- **Modal Concurrency**: `TaskDetailModal` captures `baseUpdatedAt` when opened and keeps edits in local `draft` state. Remote updates warn the user without overwriting unsaved text, and saving sends `expectedUpdatedAt` to trigger HTTP `409` on stale edits.
+- **Reconnection**: When `EventSource` reconnects after dropping, `onopen` re-fetches `/api/board` (`loadBoard(true)`) while preserving still-pending local mutations.
+- **Timestamp Resolution Assessment**: Remote updates compare `incoming.updatedAt >= current.updatedAt`. Because `bumpTimestamp()` generates strictly increasing ISO-8601 timestamps on a single Node server and sibling position shifts during `moveInTx` retain equal `updatedAt` values (handled by `>=`), this works reliably on a single server instance. However, an integer monotonic `version` column would be safer if the backend were ever scaled across multiple nodes with independent clocks. Also note that `moveTask` does not pass `expectedUpdatedAt` to `POST /api/tasks/reorder`, so concurrent drag-and-drop moves use last-write-wins.
 
 ---
 
-## Section 11 — Testing
+## Section 11 — Testing & Deployment Verification
 
-All suites ran against the simplified codebase with zero skipped tests:
+All checks below were executed cleanly with zero skipped tests:
 
-- **`npm run typecheck`**: Passed (0 errors in `server` and `client`).
-- **`npm --workspace=server run test`** (`server/src/api.test.ts`): **6/6 passed** — first-boot seeding without restart duplicates, CRUD + validation + 404, HTTP `409` conflict check, atomic same/cross-column reorder, live SSE broadcast (`task.created`, `task.updated`, `task.deleted`), and `503` failure injection.
-- **`npm --workspace=client run test`** (`client/src/board.test.tsx`): **8/8 passed** — URL query parsing/building, combined filtering, reorder math, 4-column rendering + live filter + URL sync, URL restore + `popstate`, optimistic create rollback on `503`, modal draft preservation + `409` recovery, and remote SSE sync.
-- **`npm run build`**: Passed (`server/dist/` and `client/dist/`).
-- **`npm run test:e2e`** (`scripts/e2e-verify.mjs`): **9/9 passed** using two separate Microsoft Edge browser contexts against the compiled server: dual-client SSE load, create/edit/delete sync, HTTP `409` conflict flow, cross-column drag-and-drop persistence, filter URL persistence across refresh, failure-toggle rollback, and offline reconnect sync.
+| Verification Check | Result | Scope & Counts |
+| :--- | :--- | :--- |
+| `npm run typecheck` | Passed | 0 TypeScript errors across `server` and `client` |
+| `npm --workspace=server run test` | Passed (6/6) | Seed-once, CRUD/validation/404, HTTP `409`, atomic reorder, live SSE, `503` failure injection |
+| `npm --workspace=client run test` | Passed (8/8) | URL query parsing/sync, combined filters, theme toggle, `popstate`, reorder math, rollback, `409` modal, SSE sync |
+| `npm run build` | Passed | Compiled `server/dist/` and `client/dist/` |
+| `npm run test:e2e` | Passed (9/9) | Dual-browser MS Edge Playwright suite (live SSE create/edit/delete, `409` conflict, drag-and-drop, URL refresh, rollback, offline reconnect) |
+| Live Render probe (`https://collaborative-kanban-board-pwxi.onrender.com/`) | Verified | `GET /api/health` (`200`), `GET /api/board` (`200`, 7 tasks), `GET /` (`200`, FlowBoard client) |
 
 ---
 
@@ -151,7 +161,7 @@ npm install
 npm run dev
 ```
 
-For a single-server production run:
+Production single-server mode:
 
 ```bash
 npm run build
@@ -163,28 +173,29 @@ $env:SERVE_CLIENT="true"; $env:NODE_ENV="production"; npm run start
 
 ## Section 13 — Limitations and Future Improvements
 
-- **Deployment status**: Prepared for production serving (`SERVE_CLIENT=true`, configurable `DB_PATH`), currently tested locally and undeployed. Reverse proxies fronting `/api/events` must disable response buffering (`proxy_buffering off`) and use read timeouts longer than 25s.
-- **Single-process SSE**: `EventBus` keeps connections in memory; multi-instance scaling would need Redis Pub/Sub and a shared database instead of SQLite.
-- **Auth**: No login/user accounts; client count reflects open browser SSE tabs.
+- **Single-process SSE & SQLite**: `EventBus` keeps connections in process memory; multi-instance scaling would require Redis Pub/Sub and migrating SQLite to PostgreSQL.
+- **Free-tier Ephemeral Disk**: On free Render tiers without a persistent disk, SQLite resets when the container sleeps or redeploys and re-seeds the 7 initial tasks.
+- **Drag-and-Drop Concurrency**: `moveTask` omits `expectedUpdatedAt`, unlike `TaskDetailModal` saves.
+- **Authentication**: No user login or RBAC; the client counter shows active browser SSE connections.
 
 ---
 
 ## Section 14 — Final Completion Checklist
 
-- [x] React + TypeScript frontend
-- [x] Node.js + Express backend
+- [x] React + TypeScript frontend implemented
+- [x] Node.js + Express backend implemented
 - [x] SQLite (`better-sqlite3`) persistence
-- [x] Four columns in fixed order
-- [x] Board fetched from API
-- [x] Create, edit, delete, and task detail modal
-- [x] Drag between columns and reorder within columns
+- [x] Four columns in fixed order (`Backlog`, `Todo`, `In Progress`, `Done`)
+- [x] Board fetched from API & CRUD modals implemented
+- [x] Drag between columns and reorder within columns (`@dnd-kit`)
 - [x] Atomic position persistence
 - [x] Title search, priority filter, assignee filter, combined filtering
 - [x] URL query persistence and Back/Forward support
 - [x] Optimistic updates and scoped rollback
-- [x] SSE real-time sync and reconnect reconciliation
-- [x] Concurrent update protection (`409 Conflict`)
+- [x] SSE live sync and reconnect reconciliation
+- [x] Concurrent update protection (`409 Conflict` in edit modal)
+- [x] Light/dark theme toggle
 - [x] `README.md` and `.env.example`
-- [x] Unit, integration, and 2-browser E2E tests passing
-- [x] Production build verified
+- [x] Unit, API, build, and 2-browser E2E tests verified
+- [x] Live Render deployment verified (`https://collaborative-kanban-board-pwxi.onrender.com/`)
 - [x] `IMPLEMENTATION_REPORT.md` and `IMPLEMENTATION_REPORT.pdf`
